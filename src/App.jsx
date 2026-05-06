@@ -1,127 +1,151 @@
 import React, { useState, useEffect } from 'react';
+import VideoCard from './components/VideoCard';
+import './App.css';
 
-function App() {
+const App = () => {
+
+  // State management for videos, loading status, pagination, and selected video
   const [videos, setVideos] = useState([]);
-  const [selectedVideo, setSelectedVideo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ hasNextPage: false, totalPages: 1 });
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
-  // 1. Fetch Call to FreeAPI
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const response = await fetch('https://api.freeapi.app/api/v1/public/youtube/videos?page=1&limit=10');
-        const json = await response.json();
+  // Fetch videos from the API based on the current page
+  const fetchVideos = async (currentPage) => {
+    
+    // Set loading state to true before fetching data
+    setLoading(true);
+    try {
 
-        // Navigation: response -> data object -> data array
-        if (json.success) {
-          setVideos(json.data.data);
-        }
-      } catch (error) {
-        console.error("Fetch error:", error);
-      } finally {
-        setLoading(false);
+      // Fetch videos with pagination parameters
+      const res = await fetch(`https://api.freeapi.app/api/v1/public/youtube/videos?page=${currentPage}&limit=12`);
+      const json = await res.json();
+
+      // Update state with fetched videos and pagination info
+      if (json.success) {
+        setVideos(json.data.data);
+        setPagination({
+          hasNextPage: json.data.nextPage,
+          totalPages: json.data.totalPages
+        });
       }
-    };
+    }
+    catch (err)
+    {
+      console.error(err); 
+    }
+    finally {
+      setLoading(false);
+    }
+  };
 
-    fetchVideos();
-  }, []);
+  // Fetch videos whenever the page changes and scroll to top smoothly
+  useEffect(() => {
+    fetchVideos(page);
 
-  // Loading State
-  if (loading) {
-    return (
-      <div style={{ background: '#0f0f0f', color: 'white', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: 'sans-serif' }}>
-        <h2>Loading ViteTube...</h2>
-      </div>
-    );
-  }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
 
-  // 2. Video Detail View (Condition: selectedVideo is NOT null)
-  if (selectedVideo) {
-    const video = selectedVideo.items;
-    return (
-      <div style={{ background: '#0f0f0f', color: 'white', minHeight: '100vh', padding: '20px', fontFamily: 'sans-serif' }}>
-        <button
-          onClick={() => setSelectedVideo(null)}
-          style={{ background: '#333', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer', marginBottom: '20px', fontWeight: 'bold' }}
-        >
-          ← Back to Home
-        </button>
-
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          {/* Responsive YouTube Embed */}
-          <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '12px', background: '#000' }}>
-            <iframe
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-              src={`https://www.youtube.com/embed/${video.id}?autoplay=1`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+  // Render the main application UI
+  return (
+    <div className="portal-app">
+      {/* Centered Premium Navbar */}
+      <nav className="portal-nav">
+        <div className="nav-container">
+          <div className="brand">
+            <div className="logo-orb"></div>
+            <span>Dev<span className="accent">Tube</span></span>
           </div>
 
-          <h1 style={{ fontSize: '24px', margin: '20px 0 10px 0' }}>{video.snippet.title}</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{video.snippet.channelTitle}</div>
-            <div style={{ color: '#aaa' }}>{parseInt(video.statistics.viewCount).toLocaleString()} views</div>
+          {/* Search Bar */}
+          <div className="search-wrapper">
+            <input type="text" placeholder="Explore professional content..." />
+            <kbd>/</kbd>
           </div>
 
-          <div style={{ background: '#272727', padding: '15px', borderRadius: '12px' }}>
-            <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5', fontSize: '14px' }}>
-              {video.snippet.description || "No description provided."}
-            </p>
+          <div className="user-controls">
+            <button className="upload-trigger">Post Content</button>
+            
           </div>
         </div>
-      </div>
-    );
-  }
+      </nav>
 
-  // 3. Home Grid View (Condition: selectedVideo IS null)
-  return (
-    <div style={{ background: '#0f0f0f', color: 'white', minHeight: '100vh', padding: '20px', fontFamily: 'sans-serif' }}>
-      <header style={{ paddingBottom: '20px', marginBottom: '20px', borderBottom: '1px solid #333' }}>
-        <h1 style={{ color: '#FF0000', margin: 0 }}>ViteTube</h1>
-      </header>
+      <main className="content-wrap">
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        gap: '20px'
-      }}>
-        {videos.map((video) => (
-          <div
-            key={video.items.id}
-            onClick={() => setSelectedVideo(video)}
-            style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <img
-              src={video.items.snippet.thumbnails.high.url}
-              alt="thumbnail"
-              style={{ width: '100%', borderRadius: '12px', aspectRatio: '16/9', objectFit: 'cover' }}
-            />
-            <div style={{ marginTop: '10px' }}>
-              <h3 style={{
-                margin: '0 0 5px 0',
-                fontSize: '16px',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden'
-              }}>
-                {video.items.snippet.title}
-              </h3>
-              <p style={{ margin: 0, color: '#aaa', fontSize: '14px' }}>{video.items.snippet.channelTitle}</p>
-              <p style={{ margin: 0, color: '#aaa', fontSize: '12px' }}>
-                {parseInt(video.items.statistics.viewCount).toLocaleString()} views
-              </p>
+        {/* Immersive Category Section */}
+        <section className="filter-section">
+
+          <div className="filter-pill-container">
+            {["Discovery", "Frontend", "Backend", "System Design", "Cloud", "Security"].map(cat => (
+              <button key={cat} className={`filter-pill ${cat === "Discovery" ? "active" : ""}`}>{cat}</button>
+            ))}
+          </div>
+        </section>
+
+        {loading ? (
+          <div className="video-grid">
+            {[...Array(12)].map((_, i) => <div key={i} className="skeleton-portal"></div>)}
+          </div>
+        ) : (
+          <>
+            <div className="video-grid">
+              {videos.map(v => (
+                <VideoCard
+                  key={v.items.id}
+                  video={v.items}
+                  onClick={() => setSelectedVideo(v.items)}
+                />
+              ))}
+            </div>
+
+            {/* Clean Pagination Bar */}
+            <div className="pagination-system">
+              <button className="p-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</button>
+              
+                <div className="page-stack">
+                <span className="current">{page}</span>
+                <span className="total">of {pagination.totalPages}</span>
+                </div>
+                
+              <button className="p-btn" disabled={!pagination.hasNextPage} onClick={() => setPage(p => p + 1)}>Next</button>
+            
+              </div>
+          </>
+        )}
+      </main>
+
+      {/* Floating Watch Experience */}
+      {selectedVideo && (
+        <div className="theater-overlay" onClick={() => setSelectedVideo(null)}>
+          <div className="theater-box" onClick={e => e.stopPropagation()}>
+            <div className="iframe-wrap">
+              <iframe
+                src={`https://www.youtube.com/embed/${selectedVideo.id}?autoplay=1`}
+                frameBorder="0"
+                allowFullScreen
+              ></iframe>
+            </div>
+
+            <div className="theater-details">
+              <div className="details-main">
+                
+                <h2>{selectedVideo.snippet.title}</h2>
+                <div className="channel-info">
+                  <div className="c-avatar">{selectedVideo.snippet.channelTitle[0]}</div>
+                  <div>
+                    <p className="c-name">{selectedVideo.snippet.channelTitle}</p>
+                    <p className="c-subs">4.2M Subscribers</p>
+                  </div>
+                  <button className="sub-btn">Follow Channel</button>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default App;

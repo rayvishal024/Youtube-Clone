@@ -1,16 +1,35 @@
-# React + Vite
+# YouTube Videos Listing
+This project is a React application that lists YouTube videos with pagination. It fetches video data from an API and displays it in a card format. Users can navigate through pages of videos using "Previous" and "Next" buttons.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Features
+- Fetches video data from an API endpoint.
+- Displays video thumbnails, titles, channel names, and durations.
+- Implements pagination with "Previous" and "Next" buttons.
+- Smooth scroll to top when navigating between pages.
 
-Currently, two official plugins are available:
+## Components
+- `App.jsx`: The main component that manages state, fetches data, and renders the video listing and pagination controls.
+- `VideoCard.jsx`: A component that displays individual video details in a card format.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Usage
+1. Clone the repository.
+2. Install dependencies using `npm install`.
+3. Start the development server using `npm start`.
+4. The application will be available at `http://localhost:3000`. 
+5. Use the pagination buttons to navigate through the video listings.
 
-## React Compiler
+## API Endpoint
+The application fetches video data from the following API endpoint:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```
+http://localhost:8080/api/videos?page={page}
 
-## Expanding the ESLint configuration
+```
+Replace `{page}` with the desired page number to retrieve the corresponding set of videos.     
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Note
+- Ensure that the backend API is running and accessible at the specified endpoint for the application to function correctly.
+- The application assumes that the API returns data in a specific format, including video details and pagination information. Adjust the API response handling in `App.jsx` if your API structure differs.   
+
+# License
+This project is licensed under the MIT License. See the LICENSE file for details.
